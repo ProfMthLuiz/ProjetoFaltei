@@ -1,0 +1,17 @@
+Precisa instalar o MySQL WORKBENCH!
+
+CREATE DATABASE FALTEI;
+USE FALTEI;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    uid VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE presencas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    data_hora DATETIME NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
