@@ -1,0 +1,57 @@
+#include < SPI.h >
+#include < MFRC522.h >
+#include < Wire.h >
+
+#define SS_PIN 10
+#define RST_PIN 9
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+
+// UIDs dos alunos
+String alunosUID[] = {
+  "76 C8 70 AF",
+  "54 9F 60 18"
+};
+
+// Controle de presença
+bool presenca[2] = { false, false};
+
+void setup() {
+  Serial.begin(9600);
+  SPI.begin();
+  mfrc522.PCD_Init();
+
+  Serial.println("Sistema de Presença Iniciado");
+  Serial.println("Aproxime o cartão...");
+}
+
+void loop() {
+  if (!mfrc522.PICC_IsNewCardPresent()) return;
+  if (!mfrc522.PICC_ReadCardSerial()) return;
+
+  // Monta UID
+  String uidString = "";
+  for (byte i = 0; i < mfrc522.uid.size; i++) {
+    uidString += String(mfrc522.uid.uidByte[i] < 0x10 ? "0" : "");
+    uidString += String(mfrc522.uid.uidByte[i], HEX);
+    if (i < mfrc522.uid.size - 1) uidString += " ";
+  }
+  uidString.toUpperCase();
+
+  Serial.println(uidString); // envia o UID para o Node.js
+
+  // Controle local (opcional)
+  for (int i = 0; i < (sizeof(alunosUID) / sizeof(alunosUID[0])); i++) {
+    if (uidString == alunosUID[i]) {
+      if (!presenca[i]) {
+        presenca[i] = true;
+        Serial.print("Presença computada para aluno ");
+        Serial.println(i + 1);
+      } else {
+        Serial.println("Presença já registrada para esse aluno.");
+      }
+    }
+  }
+
+  mfrc522.PICC_HaltA();
+  mfrc522.PCD_StopCrypto1();
+}
